@@ -16,32 +16,57 @@ head(data)
 ```
 
 ## What is mean total number of steps taken per day?
+###Import data manipulation library
 ```{r}
 library(dplyr)
-library(lubridate)
 ```
 
+### Get average steps, total steps, and median for each day (ignoring the NA values)
 ```{r}
 proc_data <- data %>% filter(!is.na(steps)) %>%
     mutate(date = as.Date(date, "%Y-%m-%d")) %>% 
-    group_by(date) %>% summarise(avg_steps = mean(steps), count=n())
+    group_by(date) %>% summarise(total_steps = sum(steps), avg_steps = mean(steps))
 
     
-proc_data
+head(proc_data)
 ```
+
+###Import ggplot2 library for plots
 ```{r}
 library(ggplot2)
 ```
 
+###Histogram of steps 
 ```{r}
-g <- ggplot(data[!is.na(data$steps),], aes(steps))
-g + geom_histogram()
+h <- ggplot(proc_data, aes(total_steps))
+h + geom_histogram(fill = 'blue') + labs(title = "Steps per day Histogram") + 
+    geom_vline(aes(xintercept = mean(total_steps), color = "mean"), size = 2) + 
+    geom_vline(aes(xintercept = median(total_steps), color = "median"), alpha=0.5) +
+    scale_color_manual(values = c("mean"="green", "median"="black"))
+    
 ```
+### Average and median total steps per day
+```{r}
+print(paste("Mean total steps per day:", round(mean(proc_data$total_steps))))
+print(paste("Median total steps per day:", round(median(proc_data$total_steps))))
 
+```
 ## What is the average daily activity pattern?
+```{r}
+daily_pattern <- data %>% filter(!is.na(steps)) %>%
+    mutate(date = as.Date(date, "%Y-%m-%d")) %>% 
+    group_by(interval) %>% summarise(avg_steps = mean(steps))
 
+head(daily_pattern)
+```
+```{r}
+g <- ggplot(daily_pattern, aes(x = interval, y = avg_steps))
+g + geom_line(color = 'blue', size = 1)
 
-
+```
+```{r}
+print(daily_pattern[daily_pattern$avg_steps == max(daily_pattern$avg_steps),])
+```
 ## Imputing missing values
 
 

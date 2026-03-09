@@ -16,7 +16,7 @@ head(data)
 ```
 
 ## What is mean total number of steps taken per day?
-###Import data manipulation library
+### Import data manipulation library
 ```{r}
 library(dplyr)
 ```
@@ -31,18 +31,18 @@ proc_data <- data %>% filter(!is.na(steps)) %>%
 head(proc_data)
 ```
 
-###Import ggplot2 library for plots
+### Import ggplot2 library for plots
 ```{r}
 library(ggplot2)
 ```
 
-###Histogram of steps 
+### Histogram of steps 
 ```{r}
 h <- ggplot(proc_data, aes(total_steps))
 h + geom_histogram(fill = 'blue') + labs(title = "Steps per day Histogram") + 
     geom_vline(aes(xintercept = mean(total_steps), color = "mean"), size = 2) + 
     geom_vline(aes(xintercept = median(total_steps), color = "median"), alpha=0.5) +
-    scale_color_manual(values = c("mean"="green", "median"="black"))
+    scale_color_manual(values = c("mean"="green", "median"="black")) #this map is added in order to get the legend 
     
 ```
 ### Average and median total steps per day
@@ -68,7 +68,44 @@ g + geom_line(color = 'blue', size = 1)
 print(daily_pattern[daily_pattern$avg_steps == max(daily_pattern$avg_steps),])
 ```
 ## Imputing missing values
+### Report the number of missing values
+```{r}
+nas <- sum(is.na(data$steps))
+print(paste("The number of NA values in the steps column is:", nas))
+```
 
+### Filling missing values using the mean value for the corresponding interval
+```{r}
+filled_data <- data %>% left_join(daily_pattern, by = "interval") %>%
+    mutate(steps = if_else(is.na(steps), avg_steps , steps)) %>%
+    select(steps, date, interval)
 
+head(filled_data)
+```
+### Histogram of steps (wona = without NAs)
+```{r}
+
+data_wona <- filled_data %>%
+    mutate(date = as.Date(date, "%Y-%m-%d")) %>% 
+    group_by(date) %>% summarise(total_steps = sum(steps))
+
+head(data_wona)
+```
+
+```{r}
+h_wona <- ggplot(data_wona, aes(total_steps))
+h_wona + geom_histogram(fill = 'brown') + labs(title = "Steps per day Histogram") + 
+    geom_vline(aes(xintercept = mean(total_steps), color = "mean"), size = 2) + 
+    geom_vline(aes(xintercept = median(total_steps), color = "median"), alpha=0.5) +
+    scale_color_manual(values = c("mean"="green", "median"="black")) #this map is added in order to get the legend 
+    
+```
+### Average and median total steps per day (without NAs)
+```{r}
+print(paste("Mean total steps per day:", round(mean(data_wona$total_steps))))
+print(paste("Median total steps per day:", round(median(data_wona$total_steps))))
+
+```
+### There is apreciable change in mean nor median nor in the histogram
 
 ## Are there differences in activity patterns between weekdays and weekends?

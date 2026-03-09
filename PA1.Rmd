@@ -106,6 +106,24 @@ print(paste("Mean total steps per day:", round(mean(data_wona$total_steps))))
 print(paste("Median total steps per day:", round(median(data_wona$total_steps))))
 
 ```
-### There is apreciable change in mean nor median nor in the histogram
+### There is apreciable change in mean nor median nor in the histogram. The count of steps is greater because before we were ignoring NA values and now there is a mean count filling those missing values. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+
+data_weekdays <- filled_data %>%
+    mutate(date = as.Date(date)) %>%
+    mutate(weekday = if_else((weekdays(date) %in% c("Saturday", "Sunday")), "weekend", "weekday")) %>%
+    group_by(interval, weekday) %>%
+    summarise(avg_steps = mean(steps))
+
+head(data_weekdays)
+```
+
+### Plot the total average by interval and weekday-weekend category.
+```{r}
+q <- ggplot(data_weekdays, aes(x = interval, y = avg_steps))
+
+q + geom_line(color = "blue") + facet_grid(rows = vars(weekday))
+
+```
